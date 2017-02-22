@@ -1,0 +1,22 @@
+{
+  "name": "tweetsearch",
+  "version": "1.0.0",
+  "description": "",
+  "main": "connect.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/m4ttr33d/iste438_project.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/m4ttr33d/iste438_project/issues"
+  },
+  "homepage": "https://github.com/m4ttr33d/iste438_project#readme",
+  "dependencies": {
+    "mongodb": "^2.2.24"
+  }
+}
