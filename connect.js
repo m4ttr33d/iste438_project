@@ -32,7 +32,7 @@ var findTweets = function(db, param, callback){
 	var collection = db.collection('tweets_aapl');
 	console.log(searchString);
 	
-	collection.find({"Tweet content": {$regex: param}},{"User Name":1, "Date":1}).toArray(function(err, docs) {
+	collection.find({"text": {$regex: param}},{"User Name":1, "Date":1}).toArray(function(err, docs) {
 		assert.equal(err, null);
 		console.log("Found the following " +docs.length + " records");
 		callback(docs, db);
