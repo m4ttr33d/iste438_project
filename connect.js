@@ -1,6 +1,7 @@
 var mongodb = require('mongodb');
 var assert=require('assert');
 var client = mongodb.MongoClient;
+var bodyParser = require('body-parser');
 
 var url = 'mongodb://localhost:27017/users';
 
@@ -21,33 +22,44 @@ const rl = readline.createInterface({
 
 client.connect(url,function(err,db){
     if(err){
-        console.log("Unable to connect. Error:", err);
+        //console.log("Unable to connect. Error:", err);
+		app.get('/',function(req,res){
+			res.send("<h1> Unable to connect </h1>"); //here is the table. Past here I have no clue
+		});
     }
     else{
-        console.log('Conected to ', url);
+        //console.log('Conected to ', url);
+		app.get('/',function(req,res){
+			res.send("<h1> Search Tweets </h1><form method='post' action='/search'><input type='text' name='query' placeholder='search'><br><input type='Submit' name='field' value='Get Tweets'></form>"); //here is the table. Past here I have no clue
+		});
+		app.post('/search',function(req,res){
+			app.use(bodyParser.urlencoded({ extended: true }));
+			app.use(bodyParser.json());
+			//res.send("<table class='table striped'><thead><tr><th> Username </th><th> Content </th><th> Date </th></tr></table>");
+			//get from form
+			console.log(req.query);
+			param = req.query;
+			res.send("You searched for " + param);
+		});
 	}
-    //do stuff here with the database
-	
-	rl.question('Enter Search Param:', (answer) => {
-		findTweets(db, answer, searchFinished);
-	});
+	//rl.question('Enter Search Param:', (answer) => {
+		//findTweets(db, answer, searchFinished);
+	//});
 	
 });
-
 
 var findTweets = function(db, param, callback){
 	var searchString = "/"+param+"/";
 	var collection = db.collection('tweets_aapl');
 	console.log(searchString);
 	
-	collection.find({"text": {$regex: param}},{"User Name":1, "Date":1}).toArray(function(err, docs) {
+	collection.find({"Tweet content": {$regex: param}},{"User Name":1, "Date":1}).toArray(function(err, docs) {
 		assert.equal(err, null);
-		console.log("Found the following " +docs.length + " records");
+		console.log("Found " +docs.length + " records");
 		callback(docs, db);
 	});
 	
 };
-
 
 var findTweetByID = function(db, id, callback){
 	var collection = db.collection('tweets_aapl');
@@ -113,7 +125,3 @@ var displayTweet = function(tweet, id, db){
 				
 	});
 }
-
-app.get('/',function(req,res){
-	res.send("<table class='table striped'><thead><tr><th> Username </th><th> Content </th><th> Date </th></tr></table>"); //here is the table. Past here I have no clue
-});

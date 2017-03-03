@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/m4ttr33d/iste438_project#readme",
   "dependencies": {
+    "body-parser": "^1.17.0",
     "mongodb": "^2.2.24"
   }
 }
