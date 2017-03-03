@@ -19,3 +19,16 @@ server by typing `mongod`.
 
 In the original window (in the same directory), start our program by typing
 `node connect.js`
+
+## Back-End
+
+
+
+
+
+
+
+## Front-End
+Our front end will be built with Angular just so we can utilize it and use it as
+a tutorial in the MEAN Stack. Therefore, our back-end will be built using Node.js
+and possibly express. We're not sure yet.

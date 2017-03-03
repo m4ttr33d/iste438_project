@@ -4,6 +4,14 @@ var client = mongodb.MongoClient;
 
 var url = 'mongodb://localhost:27017/users';
 
+var express = require('express');
+var app = express();
+
+app.listen(3000);
+console.log("Server running at localhost:3000")
+
+app.use(express.static(__dirname + "/pages"));
+
 const readline = require('readline')
 const rl = readline.createInterface({
   input: process.stdin,
@@ -105,3 +113,7 @@ var displayTweet = function(tweet, id, db){
 				
 	});
 }
+
+app.get('/',function(req,res){
+	res.send("<table class='table striped'><thead><tr><th> Username </th><th> Content </th><th> Date </th></tr></table>"); //here is the table. Past here I have no clue
+});
