@@ -30,7 +30,24 @@ client.connect(url,function(err,db){
     else{
         //console.log('Conected to ', url);
 		app.get('/',function(req,res){
-			res.send("<h1> Search Tweets </h1><form method='post' action='/search'><input type='text' name='query' placeholder='search'><br><input type='Submit' name='field' value='Get Tweets'></form>"); //here is the table. Past here I have no clue
+			res.send(
+				"<html>"+
+					"<head>"+
+						"<title> Tweet Search App </title>"+
+						"<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'"+
+						 "integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>"+
+				   		"<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js'></script>"+
+					"</head>"+
+					"<body>"+
+						"<div class='col-xs-12 text-center'>" +
+							"<form method='post'>"+
+								"<h1> Tweet Search </h1>"+
+								"<input type='text' name='query' placeholder='Search' action='/search'>"+
+								"<br><br><button type='Submit' value='Search'>Search</button>"+
+						"</div>"+
+					"</body>"+
+				"</html>");
+				//<h1> Search Tweets </h1><form method='post' action='/search'><input type='text' name='query' placeholder='search'><br><input type='Submit' name='field' value='Get Tweets'></form>"); //here is the table. Past here I have no clue
 		});
 		app.post('/search',function(req,res){
 			app.use(bodyParser.urlencoded({ extended: true }));
