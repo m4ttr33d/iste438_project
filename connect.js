@@ -2,11 +2,14 @@ var mongodb = require('mongodb');
 var assert=require('assert');
 var client = mongodb.MongoClient;
 var bodyParser = require('body-parser');
+var ObjectID = require('mongodb').ObjectID;
 
 var url = 'mongodb://localhost:27017/users';
 
 var express = require('express');
 var app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.listen(3000);
 console.log("Server running at localhost:3000")
@@ -42,125 +45,134 @@ client.connect(url,function(err,db){
 						"<div class='col-xs-12 text-center'>" +
 							"<form method='post' action='/search'>"+
 								"<h1> Tweet Search </h1>"+
-								"<input type='text' name='query' placeholder='Search'"+
-								"<br><br><br><button type='Submit' value='Search'>Search</button>"+
+								"<input type='text' name='query' placeholder='Search'>"+
+								"<br><br><br><button type='Submit' value='Search'>Search</button></form>"+
 						"</div>"+
 					"</body>"+
 				"</html>");
 		});
 		app.post('/search',function(req,res){
-			//app.use(bodyParser.urlencoded({ extended: true }));
-			//app.use(bodyParser.json());
-			res.send(
-				"<html>"+
-					"<head>"+
-						"<title> Tweet Search App </title>"+
-						"<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'"+
-						 "integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>"+
-				   		"<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js'></script>"+
-					"</head>"+
-					"<body>"+
-						"<div class='col-xs-12 text-center'>" +
-						"<h1> Tweet Results </h1>"+
-						"<div class='col-xs-2'></div><div class='col-xs-8'>"+
-						"<table class='table striped '><thead><tr><th> Username </th><th> Content </th><th> Date </th></tr>"+
-						//Here is where the data should go
-						"<tr><td>Username</td><td>Content</td><td>Date</td>"+
-						"<tr><td>Username</td><td>Content</td><td>Date</td>"+
-						"<tr><td>Username</td><td>Content</td><td>Date</td>"+
-						"<tr><td>Username</td><td>Content</td><td>Date</td>"+
-						"<tr><td>Username</td><td>Content</td><td>Date</td>"+
-						"<tr><td>Username</td><td>Content</td><td>Date</td>"+						
-						"</table>"+
-						"</div><div class='col-xs-2'></div>"+
-					"</body>"+
-				"</html>");
-			//get from form
-			//console.log(req.query);
-			//param = req.query;
-			//res.send("You searched for " + param);
+			findTweets(db, req.body.query).then(function(tweets){				
+				var response = "<html>"+
+						"<head>"+
+							"<title> Tweet Search App </title>"+
+							"<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'"+
+							 "integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>"+
+							"<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js'></script>"+
+						"</head>"+
+						"<body>"+
+							"<div class='col-xs-12 text-center'>" +
+							"<h1> Tweet Results </h1>"+
+							"<div class='col-xs-2'></div><div class='col-xs-8'>"+
+							"<table class='table striped '><thead><tr><th>#</th><th> Username </th><th> Date </th></tr>";
+							
+				for(t in tweets){
+					var tweet = tweets[t]
+					response += "<tr><td><a href = '/view?id="+tweet._id+"'>"+t+"</a></td>"+
+										"<td>"+tweet['User Name']+"</td>"+
+										"<td>"+tweet.Date+"</td></tr>";				
+				}
+				
+					
+				response += "</table>"+
+							"</div><div class='col-xs-2'></div>"+
+						"</body>"+
+					"</html>";
+				
+				
+				res.send(response);	
+			});
+		});
+		app.get('/view',function(req,res){
+			findTweetByID(db, req.query.id).then(function(tweets){
+				var tweet = tweets[0];
+				
+				var response = "<html>"+
+						"<head>"+
+							"<title> Tweet Search App </title>"+
+							"<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'"+
+							 "integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>"+
+							"<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js'></script>"+
+						"</head>"+
+						"<body>"+
+							"<div class='col-xs-12 text-center'>" +
+							"<h1> View Tweet </h1>"+
+							"<div class='col-xs-2'></div><div class='col-xs-8'>"+
+							"<table class='table striped '><thead><tr><th>Field</th><th> Data </th></tr>";
+					
+					for(prop in tweet){
+						response += "<tr><td>"+prop+"</td><td>"+tweet[prop]+"</td></tr>";
+					}
+					
+				response += "</table></div><div class='col-xs-2'></div>"+
+							"<form method='post' action='/update'>"+
+								"<h1> Update Twet Comment </h1>"+
+								"<input type='text' name='comment' placeholder='Search'>"+
+								"<input type='hidden' name='id' value ='" +tweet._id +"'>"+
+								"<br><br><br><button type='Submit' value='Save'>Save</button></form>"+
+						"</body>"+
+					"</html>";
+								
+				res.send(response);	
+			});
+		});
+		app.post('/update',function(req,res){
+			updateComment(db, req.body.comment, req.body.id).then(function(tweets){				
+				findTweetByID(db, req.body.id).then(function(tweets){
+					var tweet = tweets[0];
+					
+					var response = "<html>"+
+							"<head>"+
+								"<title> Tweet Search App </title>"+
+								"<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'"+
+								 "integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>"+
+								"<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js'></script>"+
+							"</head>"+
+							"<body>"+
+								"<div class='col-xs-12 text-center'>" +
+								"<h1> View Tweet </h1>"+
+								"<div class='col-xs-2'></div><div class='col-xs-8'>"+
+								"<table class='table striped '><thead><tr><th>Field</th><th> Data </th></tr>";
+						
+						for(prop in tweet){
+							response += "<tr><td>"+prop+"</td><td>"+tweet[prop]+"</td></tr>";
+						}
+						
+					response += "</table></div><div class='col-xs-2'></div>"+
+								"<form method='post' action='/update'>"+
+									"<h1> Update Twet Comment </h1>"+
+									"<input type='text' name='comment' placeholder='New Comment'>"+
+									"<input type='hidden' name='id' value ='" +tweet._id +"'>"+
+									"<br><br><br><button type='Submit' value='Save'>Save</button></form>"+
+							"</body>"+
+						"</html>";
+									
+					res.send(response);	
+				});
+			});
 		});
 	}
-	//rl.question('Enter Search Param:', (answer) => {
-		//findTweets(db, answer, searchFinished);
-	//});
 	
 });
 
-var findTweets = function(db, param, callback){
-	var searchString = "/"+param+"/";
+var findTweets = function(db, param){
 	var collection = db.collection('tweets_aapl');
-	console.log(searchString);
+	console.log("searching for "+ param);
 	
-	collection.find({"Tweet content": {$regex: param}},{"User Name":1, "Date":1}).toArray(function(err, docs) {
-		assert.equal(err, null);
-		console.log("Found " +docs.length + " records");
-		callback(docs, db);
-	});
+	return collection.find({"text": {$regex: param}},{"User Name":1, "Date":1}).toArray();
 	
 };
 
-var findTweetByID = function(db, id, callback){
+var findTweetByID = function(db, id){
 	var collection = db.collection('tweets_aapl');
-	
-	collection.find({"_id": id},{_id:0}).toArray(function(err, docs) {
-		assert.equal(err, null);
-		callback(docs[0], id, db);
-	});	
+	console.log("fething tweet "+ id);
+	return collection.find({"_id": ObjectID(id)}).toArray();	
 	
 };
 
 
-var updateComment= function(db, comment, id, callback){
+var updateComment= function(db, comment, id){
 	var collection = db.collection('tweets_aapl');
-		collection.updateOne({ _id : id }, { $set: { comment : comment } }, function(err, result) {
-		assert.equal(err, null);
-		assert.equal(1, result.result.n);
-		console.log("Updated the document");
-		callback(db,id,displayTweet);
-  });  
-}
-
-var searchFinished = function(docs, db){
-		//print results
-		for(var d in docs){
-			var tweet = docs[d]
-			console.log(d +" | "+tweet.Date +" | "+ tweet['User Name']);
-		}
-		
-		//search again or view tweet
-		rl.question('Type tweet num to view tweet or "S" to search again: ', (answer) => {
-			
-			if(answer == 'S' || answer == 's'){
-				rl.question('Enter Search Param:', (answer) => {
-					findTweets(db, answer, searchFinished);
-				});
-				
-			}else{
-				console.log(docs[answer]._id);
-				findTweetByID(db, docs[answer]._id, displayTweet);
-			}
-						
-		});
-}
-
-
-var displayTweet = function(tweet, id, db){
-	console.dir(tweet);
-	
-	rl.question('Type "C" to add comment or anything else to search again: ', (answer) => {
-			
-		if(answer == 'C' || answer == 'c'){
-			rl.question('Enter Comment:', (answer) => {
-				updateComment(db, answer, id, findTweetByID);
-			});
-			
-		}else{
-			rl.question('Enter Search Param:', (answer) => {
-				findTweets(db, answer, searchFinished);
-			});
-			
-		}
-				
-	});
+	console.log("updating tweet "+ id);
+	return collection.updateOne({ _id :  ObjectID(id) }, { $set: { comment : comment } });  
 }
