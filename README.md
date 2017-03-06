@@ -24,7 +24,8 @@ In the original window (in the same directory), start our program by typing
 
 
 
-
+## Command to change "Tweet Content" to "text"
+``` db.tweets_aapl.update({},{$rename:{"Tweet content":"text"}}, false,true);```
 
 
 
