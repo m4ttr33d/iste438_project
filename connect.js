@@ -44,7 +44,7 @@ client.connect(url,function(err,db){
 					"<body>"+
 						"<div class='col-xs-12 text-center'>" +
 							"<form method='post' action='/search'>"+
-								"<h1> Tweet Search </h1>"+
+								"<h1> Tweet Search </h1><br>"+
 								"<input type='text' name='query' placeholder='Search'>"+
 								"<br><br><br><button type='Submit' value='Search'>Search</button></form>"+
 						"</div>"+
@@ -52,6 +52,7 @@ client.connect(url,function(err,db){
 				"</html>");
 		});
 		app.post('/search',function(req,res){
+			counter=0
 			findTweets(db, req.body.query).then(function(tweets){				
 				var response = "<html>"+
 						"<head>"+
@@ -63,17 +64,19 @@ client.connect(url,function(err,db){
 						"<body>"+
 							"<div class='col-xs-12 text-center'>" +
 							"<h1> Tweet Results </h1>"+
-							"<div class='col-xs-2'></div><div class='col-xs-8'>"+
-							"<table class='table striped '><thead><tr><th>#</th><th> Username </th><th> Date </th></tr>";
+							"<div class='col-xs-2'></div><div class='col-xs-8'><input type='text' name='query' placeholder='search'>"+
+							"<br><br><form method='post' action='/search'><button type='Submit' value='Search'>Search</button></form>"+
+							"<table class='table table-striped'><thead><tr><th>#</th><th> Username </th><th> Date </th><th> View Details </th></tr>";
 							
 				for(t in tweets){
+					counter = counter + 1
 					var tweet = tweets[t]
-					response += "<tr><td><a href = '/view?id="+tweet._id+"'>"+t+"</a></td>"+
+					response += "<tr>"+
+										"<td>"+counter+"</td>"+
 										"<td>"+tweet['User Name']+"</td>"+
-										"<td>"+tweet.Date+"</td></tr>";				
+										"<td>"+tweet.Date+"</td>"+
+										"<td><a href='/view?id=" + tweet._id + "'><button type='submit' class='btn btn-info'>View Details</button></a></td></tr>";				
 				}
-				
-					
 				response += "</table>"+
 							"</div><div class='col-xs-2'></div>"+
 						"</body>"+
@@ -97,19 +100,19 @@ client.connect(url,function(err,db){
 						"<body>"+
 							"<div class='col-xs-12 text-center'>" +
 							"<h1> View Tweet </h1>"+
-							"<div class='col-xs-2'></div><div class='col-xs-8'>"+
-							"<table class='table striped '><thead><tr><th>Field</th><th> Data </th></tr>";
+							"<div class='col-lg-8 col-md-12 col-xs-12'>"+
+							"<table class='table table-striped'><thead><tr><th>Field</th><th> Data </th></tr>";
 					
 					for(prop in tweet){
 						response += "<tr><td>"+prop+"</td><td>"+tweet[prop]+"</td></tr>";
 					}
 					
-				response += "</table></div><div class='col-xs-2'></div>"+
+				response += "</table></div><div class='col-lg-4 col-md-12 col-xs-12'></div>"+
 							"<form method='post' action='/update'>"+
-								"<h1> Update Twet Comment </h1>"+
-								"<input type='text' name='comment' placeholder='Search'>"+
+								"<h1> Update Tweet Comment </h1>"+
+								"<input type='text' name='comment' placeholder='Comment'>"+
 								"<input type='hidden' name='id' value ='" +tweet._id +"'>"+
-								"<br><br><br><button type='Submit' value='Save'>Save</button></form>"+
+								"<br><br><button type='Submit' value='Save'>Save</button></form>"+
 						"</body>"+
 					"</html>";
 								
@@ -131,23 +134,23 @@ client.connect(url,function(err,db){
 							"<body>"+
 								"<div class='col-xs-12 text-center'>" +
 								"<h1> View Tweet </h1>"+
-								"<div class='col-xs-2'></div><div class='col-xs-8'>"+
-								"<table class='table striped '><thead><tr><th>Field</th><th> Data </th></tr>";
+								"<div class='col-lg-8 col-md-12 col-xs-12'>"+
+								"<table class='table table-striped'><thead><tr><th>Field</th><th> Data </th></tr>";
 						
 						for(prop in tweet){
 							response += "<tr><td>"+prop+"</td><td>"+tweet[prop]+"</td></tr>";
 						}
 						
-					response += "</table></div><div class='col-xs-2'></div>"+
+					response += "</table></div><div class='col-lg-4 col-md-12 col-xs-12'></div>"+
 								"<form method='post' action='/update'>"+
-									"<h1> Update Twet Comment </h1>"+
-									"<input type='text' name='comment' placeholder='New Comment'>"+
+									"<h1> Update Tweet Comment </h1>"+
+									"<input type='text' name='comment' placeholder='Comment'>"+
 									"<input type='hidden' name='id' value ='" +tweet._id +"'>"+
-									"<br><br><br><button type='Submit' value='Save'>Save</button></form>"+
+									"<br><br><button type='Submit' value='Save'>Save</button></form>"+
 							"</body>"+
 						"</html>";
 									
-					res.send(response);	
+					res.send(response);
 				});
 			});
 		});
@@ -159,13 +162,13 @@ var findTweets = function(db, param){
 	var collection = db.collection('tweets_aapl');
 	console.log("searching for "+ param);
 	
-	return collection.find({"text": {$regex: param}},{"User Name":1, "Date":1}).toArray();
+	return collection.find({"text": {$regex: param}},{"User Name":1, "Date":1}).limit(10).toArray();
 	
 };
 
 var findTweetByID = function(db, id){
 	var collection = db.collection('tweets_aapl');
-	console.log("fething tweet "+ id);
+	console.log("Fetching tweet "+ id);
 	return collection.find({"_id": ObjectID(id)}).toArray();	
 	
 };
